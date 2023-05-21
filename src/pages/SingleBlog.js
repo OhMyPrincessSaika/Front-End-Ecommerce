@@ -2,12 +2,23 @@ import React from 'react'
 import Meta from '../components/Meta';
 import { Link } from 'react-router-dom';
 import {HiOutlineArrowLeft,HiOutlineArrowRight} from 'react-icons/hi';
-import BreadCrumb from '../components/BreadCrumb';
+import {useLocation} from 'react-router-dom';
+import { useDispatch,useSelector } from 'react-redux';
+import BreadCrumb from '../components/BreadCrumb'
+import { getBlog } from '../features/blog/blogSlice';
 const SingleBlog = () => {
+  const location = useLocation();
+  const blogId = location.pathname.split('/')[2];
+  const dispatch = useDispatch();
+  React.useEffect(() => {
+    dispatch(getBlog(blogId))
+  },[blogId])
+  const blogSel = useSelector((state) => state.blog.blog);
+  console.log(blogSel);
   return (
     <>
-      <Meta title={""}/>
-      <BreadCrumb title={""}/>
+      <Meta title={blogSel?.title}/>
+      <BreadCrumb title={blogSel?.title}/>
       <div className="blog-wrapper home-wrapper-2 py-5">
             <div className="container-xxl">
               <div className="row">
@@ -19,10 +30,22 @@ const SingleBlog = () => {
                       Go Back to Blogs
                       </Link>
                     <h3 className="title">
-                      A Beautiful Sunday Morning Renaissance
+                      {blogSel?.title}
                     </h3>
-                    <img src="images/images/blog-1.jpg" className="img-fluid my-4 w-100" alt="blog"/>
-                    <p>Adipisicing proident adipisicing ea aute.</p>
+                    <div className="row">
+                      {
+                        blogSel?.images?.map((image) => {
+                          return  (
+                          <div className="col-sm-6 col-md-4 col-lg-3">
+                            <img src={image.url} 
+                            style={{height:'400px',objectFit:'cover',objectPosition:'top left'}} 
+                            className="img-fluid my-4 w-100" alt="blog"/>
+                          </div>
+                          )
+                        })
+                      }
+                    </div>
+                    <p dangerouslySetInnerHTML={{__html : blogSel?.description}}></p>
                   </div>
                 </div>
               </div>

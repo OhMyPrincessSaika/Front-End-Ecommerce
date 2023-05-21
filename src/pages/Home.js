@@ -6,7 +6,35 @@ import ProductCard from '../components/ProductCard';
 import SpecialProduct from '../components/SpecialProduct';
 import Meta from '../components/Meta';
 import { services } from '../utils/Data';
+import {useSelector,useDispatch} from 'react-redux';
+import { getAllProducts } from '../features/products/productSlice';
+import { getAllBlogs } from '../features/blog/blogSlice';
+import NoDataFound from '../components/NoDataFound';
+import BlogCardPlaceholder from '../components/BlogCardPlaceholder';
+import ProductPlaceholder from '../components/ProductPlaceholder';
+import SpecialProductPlaceholder from '../components/SpecialProductPlaceholder';
+
 const Home = () => {
+  let foundPopular=false,foundSpecial=false,foundFeatured = false;
+  const [products,setProducts] = React.useState([]);
+  const [blogs,setBlogs] = React.useState([]);
+  const dispatch = useDispatch();
+  React.useEffect(() => {
+    dispatch(getAllProducts());
+    dispatch(getAllBlogs());
+  },[])
+ 
+  const prodSel = useSelector ((state) =>  state.product.products.products);
+  const blogSel = useSelector ((state) => state.blog.blogs);
+  React.useEffect(() => {
+    if(prodSel) {
+      setProducts(prodSel);
+    }
+    if(blogSel) {
+      setBlogs(blogSel);
+    }
+  },[prodSel,blogSel]);
+  
   return (
     <>
       <Meta title={"Home Page"} />
@@ -15,9 +43,9 @@ const Home = () => {
           <div className="row">
             <div className="col-md-12 col-12 col-lg-6">
             {/* <div className="d-flex jusitfy-content-center align-items-center"> */}
-                <div className="main-banner position-relative">
-                  <img className="img-fluid banner-img rounded-3" src="/images/banner-1(c).jpg" alt="banner3"/>
-                  <div className="main-banner-content position-absolute">
+                <div className="main-banner" style={{position:'relative'}}>
+                  <img className="img-fluid banner-img rounded-3" src="/images/banner-c1.jpg" alt="banner3"/>
+                  <div className="main-banner-content position-absolute" style={{top:'10%',left:'6%'}}>
                     <h4>Supercharged For Pros.</h4>
                     <h5>Special Sale</h5>
                     <p>From $99 or $10/mo.</p>
@@ -164,11 +192,42 @@ const Home = () => {
           <div className="row">
             <div className="col-12">
               <h3 className="featured-heading">Featured Collection</h3>
-            </div>
-            <ProductCard/>
-            <ProductCard/>
-            <ProductCard/>
-            <ProductCard/>
+            </div>   
+            {  
+                  products.length > 0 ?
+                  <div className="row">
+                    {products?.map((product,i) => {
+                      if(product?.tag?.toLowerCase() === 'featured')  {
+                        foundFeatured = true;
+                        return (
+                        <div key={i} className="col-sm-6 col-md-4 col-lg-3 mt-4">
+                           <ProductCard key={i} index={i}  product={product} w={100}/>
+                        </div>
+                      )
+                      }
+                      })
+                    }
+                    {
+                      foundFeatured ? '' : <NoDataFound/>
+                    }
+                   </div>
+                   :
+                   <div className="row">
+                      <div className="mt-4 col-sm-6 col-md-4 col-lg-3">
+                        <ProductPlaceholder/>
+                      </div>
+                      <div className="mt-4 col-sm-6 col-md-4 col-lg-3">
+                        <ProductPlaceholder/>
+                      </div>
+                      <div className="mt-4 col-sm-6 col-md-4 col-lg-3">
+                        <ProductPlaceholder/>
+                      </div>
+                      <div className="mt-4 col-sm-6 col-md-4 col-lg-3">
+                        <ProductPlaceholder/>
+                      </div>
+                     
+                    </div>
+            }
           </div>
         </div>
       </section>
@@ -178,16 +237,45 @@ const Home = () => {
             <div className="col-12">
               <h3 className="section-heading">Special Products</h3>
             </div>
-            <div className="row">
-              <SpecialProduct/>
-              <SpecialProduct/>
-              <SpecialProduct/>
-              <SpecialProduct/>
-              <SpecialProduct/>
-              <SpecialProduct/>
-              <SpecialProduct/>
-              <SpecialProduct/>
-            </div>
+            {
+               products?.length > 0  
+               ?
+              <div className="row">
+              
+                {
+                  products?.map((product,i) => {
+                    if(product.tag.toLowerCase() === 'special') {
+                      foundSpecial= true;
+                      return (
+                        <div key={i} className="mt-2 col-sm-6 col-md-4">
+                          <SpecialProduct product={product}/>
+                        </div>
+                      )
+                    }
+                  })
+                }
+                {
+                  foundSpecial ? '' : <NoDataFound/>
+                }
+              
+              </div>
+              :
+              <div className="row">
+                <div className="mt-2 col-sm-6 col-md-4">
+                  <SpecialProductPlaceholder/>
+                </div>
+                <div className="mt-2 col-sm-6 col-md-4">
+                  <SpecialProductPlaceholder/>
+                </div>
+                <div className="mt-2 col-sm-6 col-md-4">
+                  <SpecialProductPlaceholder/>
+                </div>
+                <div className="mt-2 col-sm-6 col-md-4">
+                  <SpecialProductPlaceholder/>
+                </div>
+
+              </div>
+            }
           </div>
         </div>
       </section>
@@ -197,10 +285,45 @@ const Home = () => {
             <div className="col-12">
               <h3 className="section-heading">Our Popular Products</h3>
             </div>
-              <ProductCard/>
-              <ProductCard/>
-              <ProductCard/>
-              <ProductCard/>
+         
+                 {  
+                    products.length > 0 ?
+                    <div className="row">
+                      {products?.map((product,i) => {
+                        if(product.tag.toLowerCase() === 'popular') {
+                            foundPopular = true;
+                            return (
+        
+                            <div key={i} className="col-sm-6 col-md-4 col-lg-3">
+                              <ProductCard key={i} index={i}  product={product} w={100}/>
+                            </div>
+                          )
+
+                        }
+                        })
+                      }
+                      {
+                        foundPopular ? '' : <NoDataFound/>
+                      }
+                    </div>
+                    :
+                    <div className="row">
+                      <div className="mt-4 col-sm-6 col-md-4 col-lg-3">
+                        <ProductPlaceholder/>
+                      </div>
+                      <div className="mt-4 col-sm-6 col-md-4 col-lg-3">
+                        <ProductPlaceholder/>
+                      </div>
+                      <div className="mt-4 col-sm-6 col-md-4 col-lg-3">
+                        <ProductPlaceholder/>
+                      </div>
+                      <div className="mt-4 col-sm-6 col-md-4 col-lg-3">
+                        <ProductPlaceholder/>
+                      </div>
+                     
+                    </div>
+                  }
+
          </div>
         </div>
       </section>
@@ -246,23 +369,34 @@ const Home = () => {
             <div className="col-12">
               <h3 className="section-heading">Our Latest Blogs</h3>
             </div>
-            
-              <div className="row">
-                <div className="col-3">
-                  <BlogCard/>
+                {
+                  blogs.length > 0 ?
+                  <div className="row">
+                      {blogs?.map((blog,i) => {
+                        return ( 
+                        <div key={i} className="col-sm-6 col-md-4 col-lg-3">
+                          <BlogCard blog={blog}/>
+                        </div>)
+                      })
+                    }
+                  </div> 
+                  :
+                  <div className="row">
+                  <div className="mt-4 col-sm-6 col-md-4 col-lg-3">
+                    <BlogCardPlaceholder/>
+                  </div>
+                  <div className="mt-4 col-sm-6 col-md-4 col-lg-3">
+                    <BlogCardPlaceholder/>
+                  </div>
+                  <div className="mt-4 col-sm-6 col-md-4 col-lg-3">
+                    <BlogCardPlaceholder/>
+                  </div>
+                  <div className="mt-4 col-sm-6 col-md-4 col-lg-3">
+                    <BlogCardPlaceholder/>
+                  </div>
+                 
                 </div>
-                <div className="col-3">
-                  <BlogCard/>
-                </div>
-                <div className="col-3">
-                  <BlogCard/>
-                </div>
-                <div className="col-3">
-                  <BlogCard/>
-                </div>
-                
-              </div>
-            
+                }
           </div>
         </div>
       </section>

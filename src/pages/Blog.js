@@ -2,7 +2,21 @@ import React from 'react'
 import BreadCrumb from '../components/BreadCrumb';
 import Meta from '../components/Meta';
 import BlogCard from '../components/BlogCard';
+import {useSelector,useDispatch} from 'react-redux';
+import { getAllBlogs } from '../features/blog/blogSlice';
+import BlogCardPlaceholder from '../components/BlogCardPlaceholder';
 const Blog = () => {
+  const dispatch = useDispatch();
+  React.useEffect (() => {
+    dispatch(getAllBlogs());
+  },[])
+  const [blogs,setBlogs] = React.useState([]);
+  const blogsSel = useSelector((state) => state.blog);
+  React.useEffect(() => {
+    if(blogsSel) {
+      setBlogs(blogsSel.blogs);
+    }
+  },[blogsSel])
   return (
     <div>
         <Meta title={"Blogs"} />
@@ -24,14 +38,42 @@ const Blog = () => {
                   </div>
                 </div>
                 <div className="col-9">
-                  <div className="row">
-                    <div className="col-6 mb-3">
-                      <BlogCard/>
-                    </div>
-                    <div className="col-6 mb-3">
-                      <BlogCard/>
-                    </div>
-                  </div>
+                  {
+                    blogs.length > 0 ?
+                      <div className="row">
+                        {
+
+                          blogs?.map((blog,i) => {
+                            return (
+                              <div key={i} className="col-sm-12 col-md-6 ">
+                                <BlogCard blog={blog}/>
+                              </div>
+                            )
+                          })
+                        }
+                      </div>
+                      :
+                      <div className="row  mt-4">
+                        <div className="col-sm-12 col-md-6">
+                          <BlogCardPlaceholder/>
+                        </div>
+                        <div className="col-sm-12 col-md-6">
+                          <BlogCardPlaceholder/>
+                        </div>
+                        <div className="col-sm-12 col-md-6">
+                          <BlogCardPlaceholder/>
+                        </div>
+                        <div className="col-sm-12 col-md-6">
+                          <BlogCardPlaceholder/>
+                        </div>
+                        <div className="col-sm-12 col-md-6">
+                          <BlogCardPlaceholder/>
+                        </div>
+                        <div className="col-sm-12 col-md-6">
+                          <BlogCardPlaceholder/>
+                        </div>
+                      </div>
+                  }
                 </div>
               </div>
             </div>

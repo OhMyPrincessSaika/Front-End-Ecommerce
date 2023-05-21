@@ -6,7 +6,62 @@ import {VscGitCompare} from 'react-icons/vsc';
 import {BsSuitHeartFill} from 'react-icons/bs';
 import {AiOutlineShoppingCart} from 'react-icons/ai';
 import {BiCategoryAlt} from 'react-icons/bi';
+import { useStateContext } from '../app/ContextProvider';
+import { useDispatch,useSelector}  from 'react-redux';
+import {useNavigate} from 'react-router-dom';
+import { getUserCart,getUser } from '../features/user/userSlice';
+import { Typeahead } from 'react-bootstrap-typeahead';
+import 'react-bootstrap-typeahead/css/Typeahead.css';
 const Header = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const userFromLocalStorage = JSON.parse(localStorage.getItem('customer'));
+  const [opt,setOpt] = React.useState([]);
+  const [paginate, setPaginate] = React.useState(true);
+  const userSel = useSelector((state) => state.auth.loginUser);
+  const [isLogin,setIsLogin] = React.useState(false);
+  const prodSel = useSelector((state) => state.product?.products?.products);
+  
+  React.useEffect(() => {
+      if(userFromLocalStorage?.token) {
+        setIsLogin(true);
+      }
+  },[userSel])
+  React.useEffect(() => {
+    if(isLogin) {
+      dispatch(getUser());
+    }
+  },[])
+  React.useEffect(() => {
+    let data = [];
+    for(let i=0; i< prodSel?.length; i++) {
+       const element = prodSel[i];
+       data.push({id:i,prod:element?._id,name:element?.title})
+    }
+    setOpt(data);
+
+  },[prodSel]);
+ 
+  const {totalCartAmount,totalQuantityOfCart,setTotalQuantityOfCart,setTotalCartAmount} = useStateContext();
+  React.useEffect(() => {
+    dispatch(getUserCart());
+  },[]);
+  const cartSel = useSelector((state) => state.user.cart);
+  React.useEffect(() => {
+    if(isLogin) {
+      const sum = cartSel?.reduce((prev,currentValue) => {
+       return prev+(currentValue.price*currentValue.quantity)
+      },0)
+      setTotalQuantityOfCart(cartSel?.length > 0 ? cartSel?.length : 0);
+      setTotalCartAmount(sum);
+
+    }
+  },[cartSel,isLogin]);
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate('/',{replace:true});
+    window.location.reload();
+  }
   return (
      <>
       <header className="header-top-strip py-3">
@@ -31,7 +86,25 @@ const Header = () => {
           </div>
           <div className="col-5">
           <div className="input-group">
-            <input type="text" className="form-control" placeholder="Search..." aria-label="Search..." aria-describedby="basic-addon2"/>
+          <Typeahead
+            id="pagination-example"
+            onPaginate={() => console.log('Results paginated')}
+            options={opt}
+            minLength={2}
+            popperProps={{
+              modifiers: {
+                preventOverflow: { padding: 5 },
+                flip: { padding: 5 },
+                offset: { offset: [0, 10] },
+              },
+            }}
+            onChange={(selected) => {
+              navigate(`/product/${selected[0]?.prod}`)
+            }}
+            labelKey="name"
+            paginate={paginate}
+            placeholder="Search Products..."
+            />
             <span className="input-group-text p-3" id="basic-addon2">
               <BsSearch className="fs-5"/>
             </span>
@@ -40,12 +113,7 @@ const Header = () => {
           </div>
           <div className="col-5">
             <div className="header-upper-links d-flex align-items-center justify-content-around">
-              <div>
-                <Link to="/compare-product" className="text-white d-flex gap-1 align-items-center justify-content-center">
-                  <VscGitCompare className="fs-3"/>
-                  <p className="link-text mb-0">Compare<br/>Products</p>
-                </Link>
-              </div>
+              
               <div>
                 <Link to="/wish-list" className="text-white d-flex gap-2 align-items-center justify-content-center">
                   <BsSuitHeartFill className="fs-3"/>
@@ -53,17 +121,27 @@ const Header = () => {
                 </Link>
               </div>
               <div>
-                <Link to="/login" className="text-white d-flex gap-2 align-items-center justify-content-center">
+                <Link to={isLogin ? '' : '/login'} className="text-white d-flex gap-2 align-items-center justify-content-center">
                   <BsPersonFill className="fs-3"/>
-                  <p className="link-text mb-0">Log In<br/>Account</p>
+                  {
+                    isLogin ?
+                    <p className="link-text mb-0">
+                      Welcome<br/>{userFromLocalStorage.user.firstname}
+                    </p>
+                    :
+                    <p className="link-text mb-0">
+                      Log In<br/>Account
+                    </p>
+
+                  }
                 </Link>
               </div>
               <div>
                 <Link to="/cart" className="text-white d-flex gap-1 align-items-center justify-content-center">
                   <AiOutlineShoppingCart className="fs-3"/>
                   <div className="link-text d-flex gap-1 flex-column justify-content-center">
-                    <span className="bg-white badge rounded-3 text-dark">10</span>
-                    <p className="mb-0">$100</p>
+                    <span className="bg-white badge rounded-3 text-dark">{totalQuantityOfCart}</span>
+                    <p className="mb-0">$ {totalCartAmount}</p>
                   </div>
                 </Link>
               </div>
@@ -92,8 +170,14 @@ const Header = () => {
                   <div className="d-flex gap-3 align-items-center gap-15">
                     <NavLink  to="/">Home</NavLink>
                     <NavLink  to="/products">Our Store</NavLink>
+                    <NavLink to='/orders'>My Orders</NavLink>
                     <NavLink  to="/blogs">Blogs</NavLink>
                     <NavLink  to="/contact">Contact</NavLink>
+                    <button 
+                    className="border border-0 bg-transparent text-white text-uppercase" 
+                    type="button"
+                    onClick={handleLogout}
+                    >Logout</button>
                   </div>
                 </div>
               </div>
